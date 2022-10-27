@@ -26,7 +26,7 @@ function checkUsage() {
 }
 checkUsage
 
-output=`${CURL_CMDLINE} -X POST -u ${ATLAS_USER}:${ATLAS_PASS} -H "Accept: application/json" -H "Content-Type: application/json" ${ATLAS_URL}/api/atlas/v2/types/typedefs -d @${inputFileName}`
+output=`${CURL_CMDLINE} -s -X POST -u ${ATLAS_USER}:${ATLAS_PASS} -H "Accept: application/json" -H "Content-Type: application/json" ${ATLAS_URL}/api/atlas/v2/types/typedefs -d @${inputFileName} >/dev/null`
 ret=$?
 
 
