@@ -27,14 +27,10 @@ echo "Creating Hbase tables..."
 cat << EOF > /tmp/hbase.sh
 create 't_private','cf1','cf2'
 create 't_forex','cf1','cf2'
-
-list
 exit
 EOF
 
-
 hbase shell /tmp/hbase.sh
-
 
 cat << EOF > /tmp/forex.csv
 UTC time,EUR/USD
@@ -63,22 +59,16 @@ echo "Creating HDFS sensitive dir..."
 hdfs dfs -mkdir /sensitive
 hdfs dfs -put /tmp/private.csv /sensitive/
 
-
-
 echo "Creating Kafka topics..."
 
 if [ "${enable_kerberos}" = true  ]; then   
   kinit -kt /etc/security/keytabs/log_monitor.keytab log_monitor/$(hostname -f)@${kdc_realm}
 fi
 
-/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-topics.sh --create --zookeeper $(hostname -f):2181/kafka --replication-factor 1 --partitions 1 --topic FOREX
-/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-topics.sh --create --zookeeper $(hostname -f):2181/kafka --replication-factor 1 --partitions 1 --topic PRIVATE
-/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-topics.sh --zookeeper $(hostname -f):2181/kafka --list
+/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-topics.sh --create --zookeeper $(hostname -f):2181/kafka --replication-factor 1 --partitions 1 --topic FOREX 2>/dev/null
+/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-topics.sh --create --zookeeper $(hostname -f):2181/kafka --replication-factor 1 --partitions 1 --topic PRIVATE 2>/dev/null
 
-
-
-
-
+# /opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-topics.sh --zookeeper $(hostname -f):2181/kafka --list 2>/dev/null
 
 echo "Publishing test data to Kafka topics..."
 sleep 5
@@ -96,13 +86,13 @@ sleep 5
 export KAFKA_OPTS="-Djava.security.auth.login.config=/tmp/jaas.conf"
 
 #push data to kafka topics
-/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-console-producer.sh --producer.config /tmp/client.properties --broker-list $(hostname -f):9092 --topic PRIVATE   < /tmp/private.csv
-/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-console-producer.sh --producer.config /tmp/client.properties --broker-list $(hostname -f):9092 --topic FOREX   < /tmp/forex.csv
+/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-console-producer.sh --producer.config /tmp/client.properties --broker-list $(hostname -f):9092 --topic PRIVATE   < /tmp/private.csv 2>/dev/null
+/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-console-producer.sh --producer.config /tmp/client.properties --broker-list $(hostname -f):9092 --topic FOREX   < /tmp/forex.csv 2>/dev/null
 
 #test data got pushed
-/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-console-consumer.sh --consumer.config /tmp/client.properties  --bootstrap-server $(hostname -f):9092 --topic PRIVATE --from-beginning --max-messages 5
-/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-console-consumer.sh --consumer.config /tmp/client.properties  --bootstrap-server $(hostname -f):9092 --topic FOREX --from-beginning --max-messages 5
-
+echo "-- reading 5 messages from topics"
+/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-console-consumer.sh --consumer.config /tmp/client.properties  --bootstrap-server $(hostname -f):9092 --topic PRIVATE --from-beginning --max-messages 5 2>/dev/null
+/opt/cloudera/parcels/CDH/lib/kafka/bin/kafka-console-consumer.sh --consumer.config /tmp/client.properties  --bootstrap-server $(hostname -f):9092 --topic FOREX --from-beginning --max-messages 5 2>/dev/null
 
 
 if [ "${enable_kerberos}" = true  ]; then 
