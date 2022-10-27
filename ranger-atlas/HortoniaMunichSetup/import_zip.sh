@@ -23,7 +23,7 @@ checkUsage
 
 url=${ATLAS_URL}/api/atlas/admin/import
 
-output=`${CURL_CMDLINE} -X POST -u ${ATLAS_USER}:${ATLAS_PASS} -H "Accept: application/json" -H "Content-Type: multipart/form-data" -H "Cache-Control: no-cache" -F data=@${inputFileName} ${url}`
+output=`${CURL_CMDLINE} -s -X POST -u ${ATLAS_USER}:${ATLAS_PASS} -H "Accept: application/json" -H "Content-Type: multipart/form-data" -H "Cache-Control: no-cache" -F data=@${inputFileName} ${url} >/dev/null`
 ret=$?
 
 if [ $ret == 0 ]
